@@ -3,9 +3,9 @@ The inspiration for this project came from a beach volleyball league.  My team w
 
 - Assumes two or more teams per league
 - Teams play head-to-head for each of N rounds of play
-- Each team gains or loses points after each game
+- Teams gains or loses points after each game
 - Points are used to determine fair matchups
-- Can prevent two teams from playing each other twice within k rounds of play
+- Can prevent two teams from playing each other twice within K rounds of play
 
 ## Example
 Here we simulate a league with 9 teams and 8 weeks of play. Each team must be seeded to begin the season.
@@ -35,7 +35,7 @@ Round1 Matchups
 |    1    | The Sloths  | The Rabbits  |    TRUE    |
 ```
 
-Teams who win gain 9 points.  Teams who lose, lose points equal to the seed of the team they played.  For example, since The Cats lost to The Frogs (the 1 seed), The Cats lose 1 point, bringing their total to 6 - 1 = 5 before starting Round 2.
+Teams who win gain 9 points.  Teams who lose, lose points equal to the seed of the team they played.  For example, since The Cats lost to The Frogs (the 1 seed), The Cats lose 1 point, bringing their total to 6 - 1 = 5 points before starting Round 2.
 
 Resulting Points
 ```
