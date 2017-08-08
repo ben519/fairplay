@@ -73,3 +73,6 @@ We can inspect the actual games played by The Crickets
 ```
 
 Notice how The Crickets never played the same team twice within a short timespan (or in this case, never at all).  FairPlay is deisnged so that we can forcefully prevent teams from playing each other twice within a short timespan while still generating competitive matchups between teams.
+
+## Contact
+If you'd like to contact me regarding bugs, questions, or general consulting, feel free to drop me a line - bgorman519@gmail.com
