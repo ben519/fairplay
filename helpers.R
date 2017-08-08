@@ -1,4 +1,4 @@
-# Create a league where strong teams play strong teams and weak teams play weak teams
+# helpers
 
 #======================================================================================================
 # Load packages
@@ -138,24 +138,31 @@ next_round_games <- function(teams, games=NULL, excludeLastKTeams = 2, Nrounds){
   return(newgames)
 }
 
-simulate_games <- function(teams, Nrounds = 10){
-  # Simulate games with winners and losers
+plot_points_progression <- function(games, team="A"){
+  # Show the progression for a single team
   
-  games <- next_round_games(teams, games = NULL, excludeLastKTeams = 2, Nrounds = Nrounds)
-  games[, Team1Win := runif(n = .N, min = 0, max = 1) > 0.4]
+  gameteams <- games_to_gameteams(games)
+  teampts <- team_points(teams, games)
   
-  if(Nrounds == 1) return(games[])
-  
-  gamesList <- list(games)
-  for(rd in seq(2, Nrounds)){
-    games <- rbindlist(gamesList)
-    newgames <- next_round_games(teams, games, excludeLastKTeams = 2, Nrounds = Nrounds)
-    newgames[, Team1Win := runif(n = .N, min = 0, max = 1) > 0.4]
-    gamesList <- c(gamesList, list(newgames))
+  if(is.null(team)){
+    plt <- ggplot(teampts, aes(x=BeforeRound, y=Points, group=Team, color=Team))+geom_line()+
+      scale_x_continuous(breaks = sort(unique(teampts$BeforeRound)))+
+      labs(title = "Points Progression For All Teams")+theme_bw()
+  } else{
+    edges <- gameteams[Team == team]
+    edges[teampts, TeamPts := Points, on=c("Round"="BeforeRound", "Team")]
+    edges[teampts, OppPts := Points, on=c("Round"="BeforeRound", "Opponent"="Team")]
+    plt <- ggplot(teampts, aes(x=BeforeRound, y=Points, group=Team))+geom_line(size=0.5, color="grey")+
+      geom_line(data=teampts[Team == team], color="red", size=1.5)+
+      geom_segment(data=edges, aes(x=Round, xend=Round, y=TeamPts, yend=OppPts), color="blue")+
+      scale_x_continuous(breaks = sort(unique(teampts$BeforeRound)))+
+      labs(
+        title = paste("Progression for team", team), 
+        subtitle = paste0("Starting seed: ", teams[Team == team]$StartingSeed, ".  Final seed: ", tail(teampts[Team == team]$Seed))
+      )+theme_bw()
   }
-  games <- rbindlist(gamesList)
   
-  return(games[])
+  return(plt)
 }
 
 team_points <- function(teams, games=NULL){
@@ -206,66 +213,3 @@ team_points <- function(teams, games=NULL){
   
   return(roundseeds)
 }
-
-#======================================================================================================
-
-plot_team_games <- function(games, team="A"){
-  # Show the progression for a single team
-  
-  gameteams <- games_to_gameteams(games)
-  teampts <- team_points(teams, games)
-  edges <- gameteams[Team == team]
-  edges[teampts, TeamPts := Points, on=c("Round"="BeforeRound", "Team")]
-  edges[teampts, OppPts := Points, on=c("Round"="BeforeRound", "Opponent"="Team")]
-  ggplot(teampts, aes(x=BeforeRound, y=Points, group=Team))+geom_line(size=0.5, color="grey")+
-    geom_line(data=teampts[Team == team], color="red", size=1.5)+
-    geom_segment(data=edges, aes(x=Round, xend=Round, y=TeamPts, yend=OppPts), color="blue")+
-    scale_x_continuous(breaks = sort(unique(teampts$BeforeRound)))+
-    labs(
-      title = paste("Progression for team", team), 
-      subtitle = paste0("Starting seed: ", teams[Team == team]$StartingSeed, ".  Final seed: ", tail(teampts[Team == team]$Seed))
-    )+theme_bw()
-}
-
-plot_team_games(games, "A")
-plot_team_games(games, "B")
-plot_team_games(games, "C")
-
-#======================================================================================================
-# Simulate a league
-
-set.seed(0)
-teams <- make_teams(10)
-games <- simulate_games(teams = teams, Nrounds = 8)
-gameteams <- games_to_gameteams(games)
-teampts <- team_points(teams, games)
-teampts[, PointsGained := shift(Points, type="lead") - Points, by=c("Team")]
-gameteams[teampts, StartingPoints := Points, on=c("Team", "Round"="BeforeRound")]
-gameteams[teampts, OpponentSeed := i.Seed, on=c("Opponent"="Team", "Round"="BeforeRound")]
-gameteams[teampts, PointsGained := i.PointsGained, on=c("Team", "Round"="BeforeRound")]
-gameteams[teampts[, list(Round = BeforeRound - 1, Team, Points)], ResultingCumulativePoints := i.Points, on=c("Team", "Round")]
-
-# Team A
-gameteams[Team == "A"]
-teampts[Team == "A"]
-
-# Team B
-gameteams[Team == "B"]
-teampts[Team == "B"]
-
-# Team F
-gameteams[Team == "F"]
-teampts[Team == "F"]
-
-# Team G
-gameteams[Team == "G"]
-teampts[Team == "G"]
-
-# Team J
-gameteams[Team == "J"]
-teampts[Team == "J"]
-
-# Team I
-gameteams[Team == "I"]
-teampts[Team == "J"]
-plot_team_games(games, "I")
